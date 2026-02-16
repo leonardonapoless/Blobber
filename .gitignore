@@ -1,0 +1,18 @@
+# Xcode
+DerivedData/
+build/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcworkspace/
+*.xcworkspace/xcuserdata/
+
+# Finder
+.DS_Store
+
+# Metal
+*.metallib
+*.air
+
+# Debug Symbols
+*.dSYM
+*.dSYM.zip
