@@ -48,7 +48,7 @@ struct ContentView: View {
             
             TimelineView(.animation) { context in
                 let time = Float(context.date.timeIntervalSinceReferenceDate
-                    .truncatingRemainder(dividingBy: 900.0))
+                    .truncatingRemainder(dividingBy: 2000.0))
                 let tapElapsed = Float(context.date.timeIntervalSince(tapDate))
                 
                 Rectangle()
@@ -83,7 +83,7 @@ struct ContentView: View {
                             mouseLocation = nil
                             lastMouseLocation = nil
                             /// let speed decay instead of snapping to zero
-                            mouseSpeed = mouseSpeed * 0.5
+                            mouseSpeed = mouseSpeed * 0.1
                             NSCursor.pop()
                         @unknown default:
                             break
@@ -98,7 +98,7 @@ struct ContentView: View {
                     Toggle(isOn: Binding(
                         get: { colorScheme == .dark },
                         set: { isDark in
-                            withAnimation(.easeInOut(duration: 0.3)) {
+                            withAnimation(.easeInOut(duration: 1.2)) {
                                 appearanceOverride = isDark ? .dark : .light
                             }
                         }
@@ -131,7 +131,7 @@ struct ContentView: View {
     private func triggerMorph() {
         lastTapDate = Date()
         withAnimation(.interpolatingSpring(stiffness: 100, damping: 12)) {
-            evolution += Float.random(in: 10...50)
+            evolution += Float.random(in: 40...50)
             complexity = Float.random(in: 2.0...8.0)
             let pool = colorScheme == .dark ? darkColors : lightColors
             color = pool.randomElement() ?? Color(red: 0.15, green: 0.55, blue: 0.85)

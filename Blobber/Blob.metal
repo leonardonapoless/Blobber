@@ -10,7 +10,7 @@
 
 using namespace metal;
 
-#define NUM_BLOBS 8
+#define NUM_BLOBS 3
 
 struct Blob {
     float2 pos;
@@ -36,11 +36,17 @@ half3 hueShift(half3 col, float shift) {
 }
 
 // constant arrays in global memory for better cache usage
-constant float speeds[NUM_BLOBS]  = { 0.7, -0.5, 0.9, -0.8, 0.6, -1.1, 0.4, -0.65 };
-constant float orbits[NUM_BLOBS]  = { 0.22, 0.18, 0.28, 0.15, 0.25, 0.20, 0.12, 0.24 };
-constant float phases[NUM_BLOBS]  = { 0.0, 0.79, 1.57, 2.36, 3.14, 3.93, 4.71, 5.50 };
-constant float radii[NUM_BLOBS]   = { 0.18, 0.15, 0.20, 0.14, 0.17, 0.16, 0.13, 0.19 };
-constant float hueShifts[NUM_BLOBS] = { 0.0, 0.05, -0.05, 0.1, -0.1, 0.15, -0.15, 0.08 };
+//constant float speeds[NUM_BLOBS]  = { 0.7, -0.5, 0.9, -0.8, 0.6, -1.1, 0.4, -0.65 };
+//constant float orbits[NUM_BLOBS]  = { 0.22, 0.18, 0.28, 0.15, 0.25, 0.20, 0.12, 0.24 };
+//constant float phases[NUM_BLOBS]  = { 0.0, 0.79, 1.57, 2.36, 3.14, 3.93, 4.71, 5.50 };
+//constant float radii[NUM_BLOBS]   = { 0.18, 0.15, 0.20, 0.14, 0.17, 0.16, 0.13, 0.19 };
+//constant float hueShifts[NUM_BLOBS] = { 0.0, 0.05, -0.05, 0.1, -0.1, 0.15, -0.15, 0.08 };
+constant float speeds[NUM_BLOBS]  = { 0.7, -0.5, 0.9};
+constant float orbits[NUM_BLOBS]  = { 0.22, 0.18, 0.28 };
+constant float phases[NUM_BLOBS]  = { 0.0, 0.79, 1.57 };
+constant float radii[NUM_BLOBS]   = { 0.18, 0.15, 0.20 };
+constant float hueShifts[NUM_BLOBS] = { 0.0, 0.05, -0.05 };
+
 
 [[ stitchable ]] half4 dynamicBlob(
     float2 position,
@@ -56,7 +62,7 @@ constant float hueShifts[NUM_BLOBS] = { 0.0, 0.05, -0.05, 0.1, -0.1, 0.15, -0.15
     float2 uv = (position - size * 0.5) / min(size.x, size.y) * 2.0;
 
     /// fmod to avoid float32 precision issues
-    float t = fmod(time, 600.0);
+    float t = fmod(time, 1000.0);
 
     /// damped spring for the tap bounce
     float tapScatter = 0.0;
@@ -114,9 +120,9 @@ constant float hueShifts[NUM_BLOBS] = { 0.0, 0.05, -0.05, 0.1, -0.1, 0.15, -0.15
             float mouseDistSq = length_squared(toBlob);
             
             /// optimization: only repel if close enough (avoid sqrt if far away)
-            if (mouseDistSq < 0.3) {
+            if (mouseDistSq < 0.8) {
                 float mouseDist = sqrt(mouseDistSq);
-                float proximity = 1.0 - smoothstep(0.0, 0.5, mouseDist);
+                float proximity = 4.0 - smoothstep(0.0, 0.5, mouseDist);
                 float repelStrength = proximity * clamp(mouseSpeed * 0.002, 0.0, 0.08);
                 float2 repelDir = (mouseDist > 0.001) ? normalize(toBlob) : float2(0.0);
                 blobPos += repelDir * repelStrength;
@@ -126,7 +132,7 @@ constant float hueShifts[NUM_BLOBS] = { 0.0, 0.05, -0.05, 0.1, -0.1, 0.15, -0.15
         /// metaball influence: r^2 / d^2
         /// OPTIMIZATION: use distance_squared to avoid sqrt()
         float distSq = distance_squared(uv, blobPos);
-        float influence = (blobR * blobR) / (distSq + 0.001);
+        float influence = (blobR * blobR) / (distSq + 0.009);
 
         field += influence;
 
