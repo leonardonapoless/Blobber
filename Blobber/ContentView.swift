@@ -8,6 +8,12 @@
 import SwiftUI
 import AppKit
 
+class MouseTracker {
+    var location: CGPoint? = nil
+    var lastLocation: CGPoint? = nil
+    var speed: Float = 0.0
+}
+
 struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var evolution: Float = 0.0
@@ -15,9 +21,7 @@ struct ContentView: View {
     @State private var color: Color = .primary
     @State private var lastTapDate: Date = .distantPast
     
-    @State private var mouseLocation: CGPoint? = nil
-    @State private var lastMouseLocation: CGPoint? = nil
-    @State private var mouseSpeed: Float = 0.0
+    @State private var mouseTracker = MouseTracker()
     
     @State private var appearanceOverride: ColorScheme? = nil
     
@@ -40,8 +44,6 @@ struct ContentView: View {
         let currentComplexity = complexity
         let currentColor = color
         let tapDate = lastTapDate
-        let currentMouseLoc = mouseLocation
-        let currentMouseSpeed = mouseSpeed
         
         ZStack {
             (colorScheme == .dark ? Color.black : Color.white).ignoresSafeArea()
@@ -58,8 +60,8 @@ struct ContentView: View {
                         complexity: currentComplexity,
                         evolution: currentEvolution,
                         tapElapsed: tapElapsed,
-                        mouseLocation: currentMouseLoc,
-                        mouseSpeed: currentMouseSpeed
+                        mouseLocation: mouseTracker.location,
+                        mouseSpeed: mouseTracker.speed
                     ))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .onTapGesture {
@@ -69,21 +71,19 @@ struct ContentView: View {
                         switch phase {
                         case .active(let location):
                             /// compute speed from distance between frames
-                            if let prev = lastMouseLocation {
+                            if let prev = mouseTracker.lastLocation {
                                 let dx = Float(location.x - prev.x)
                                 let dy = Float(location.y - prev.y)
                                 let dist = sqrt(dx * dx + dy * dy)
-                                /// smooth it out so it doesnt jump around
-                                mouseSpeed = mouseSpeed * 0.7 + dist * 0.3
+                                mouseTracker.speed = mouseTracker.speed * 0.7 + dist * 0.3
                             }
-                            lastMouseLocation = location
-                            mouseLocation = location
+                            mouseTracker.lastLocation = location
+                            mouseTracker.location = location
                             NSCursor.pointingHand.push()
                         case .ended:
-                            mouseLocation = nil
-                            lastMouseLocation = nil
-                            /// let speed decay instead of snapping to zero
-                            mouseSpeed = mouseSpeed * 0.1
+                            mouseTracker.location = nil
+                            mouseTracker.lastLocation = nil
+                            mouseTracker.speed = mouseTracker.speed * 0.1
                             NSCursor.pop()
                         @unknown default:
                             break
